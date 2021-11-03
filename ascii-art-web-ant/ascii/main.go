@@ -6,11 +6,10 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 type Page struct {
-	Body []byte
+	Body []byt
 }
 
 func (p *Page) save() error {
@@ -24,9 +23,9 @@ func loadPage(title string) *Page {
 	return &Page{Body: body}
 }
 
-func asciiArt() (str string, bMap map[rune][]string) {
+func asciiArt(input string) (str string, bMap map[rune][]string) {
 	data := ascii.Banner()
-	output := os.Args[1]
+	output := input
 
 	// outputFile := flag.String("output", os.Args[2][9:], "output into file")
 
@@ -44,15 +43,7 @@ func asciiArt() (str string, bMap map[rune][]string) {
 }
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
-	p := loadPage("ascii.txt")
-
-	t, _ := template.ParseFiles("ascii.html")
-	t.Execute(w, p)
-
-}
-
-func main() {
-	output, bannerMap := asciiArt()
+	output, bannerMap := asciiArt(r.FormValue("input"))
 	list := ascii.SplitByNewLine(output)
 
 	str := ""
@@ -71,7 +62,15 @@ func main() {
 
 	}
 	p1 := &Page{Body: []byte(str)}
-	p1.save()
+	// p1.save()
+	// p := loadPage("ascii.txt")
+
+	t, _ := template.ParseFiles("ascii.html")
+	t.Execute(w, p1)
+
+}
+
+func main() {
 	http.HandleFunc("/", handlerFunc)
 	fmt.Println("starting..")
 	http.ListenAndServe(":3000", nil)
