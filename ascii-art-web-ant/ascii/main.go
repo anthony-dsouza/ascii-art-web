@@ -4,27 +4,17 @@ import (
 	"ascii"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type Page struct {
-	Body []byt
+	Body   []byte
+	Banner []string
 }
 
-func (p *Page) save() error {
-	filename := "ascii.txt"
-	return ioutil.WriteFile(filename, p.Body, 0600)
-}
-
-func loadPage(title string) *Page {
-	filename := "ascii.txt"
-	body, _ := ioutil.ReadFile(filename)
-	return &Page{Body: body}
-}
-
-func asciiArt(input string) (str string, bMap map[rune][]string) {
-	data := ascii.Banner()
+func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
+	data := ascii.Banner(ban)
 	output := input
 
 	// outputFile := flag.String("output", os.Args[2][9:], "output into file")
@@ -43,7 +33,7 @@ func asciiArt(input string) (str string, bMap map[rune][]string) {
 }
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
-	output, bannerMap := asciiArt(r.FormValue("input"))
+	output, bannerMap := asciiArt(r.FormValue("input"), r.FormValue("banner"))
 	list := ascii.SplitByNewLine(output)
 
 	str := ""
@@ -62,6 +52,11 @@ func handlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	}
 	p1 := &Page{Body: []byte(str)}
+	fonts, _ := os.ReadDir("fonts")
+	for _, name := range fonts {
+		p1.Banner = append(p1.Banner, name.Name())
+	}
+
 	// p1.save()
 	// p := loadPage("ascii.txt")
 
@@ -74,4 +69,5 @@ func main() {
 	http.HandleFunc("/", handlerFunc)
 	fmt.Println("starting..")
 	http.ListenAndServe(":3000", nil)
+
 }
