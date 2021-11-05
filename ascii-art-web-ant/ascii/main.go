@@ -17,12 +17,6 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
 	data := ascii.Banner(ban)
 	output := input
 
-	// outputFile := flag.String("output", os.Args[2][9:], "output into file")
-
-	// flag.Parse()
-	// fmt.Println(*outputFile)
-	// fmt.Println(flag.Parsed())
-
 	defer data.Close()
 
 	ArrayOfLines := ascii.Array(data)
@@ -33,6 +27,11 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
 }
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
 	output, bannerMap := asciiArt(r.FormValue("input"), r.FormValue("banner"))
 	list := ascii.SplitByNewLine(output)
 
@@ -49,7 +48,6 @@ func handlerFunc(w http.ResponseWriter, r *http.Request) {
 				str = str + line + "\n"
 			}
 		}
-
 	}
 	p1 := &Page{Body: []byte(str)}
 	fonts, _ := os.ReadDir("fonts")
@@ -57,17 +55,12 @@ func handlerFunc(w http.ResponseWriter, r *http.Request) {
 		p1.Banner = append(p1.Banner, name.Name())
 	}
 
-	// p1.save()
-	// p := loadPage("ascii.txt")
-
 	t, _ := template.ParseFiles("ascii.html")
 	t.Execute(w, p1)
-
 }
 
 func main() {
 	http.HandleFunc("/", handlerFunc)
 	fmt.Println("starting..")
 	http.ListenAndServe(":3000", nil)
-
 }
