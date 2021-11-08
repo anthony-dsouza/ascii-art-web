@@ -20,12 +20,6 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
 	data := ascii.Banner(ban)
 	output := input
 
-	// outputFile := flag.String("output", os.Args[2][9:], "output into file")
-
-	// flag.Parse()
-	// fmt.Println(*outputFile)
-	// fmt.Println(flag.Parsed())
-
 	defer data.Close()
 
 	ArrayOfLines := ascii.Array(data)
@@ -55,7 +49,6 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 				str = str + line + "\n"
 			}
 		}
-
 	}
 	p1.Body = []byte(str)
 	p1.Font = font
@@ -100,7 +93,6 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 	t, _ := template.ParseFiles("ascii.html")
 	t.Execute(w, p1)
-
 }
 
 func main() {
