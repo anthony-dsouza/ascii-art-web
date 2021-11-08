@@ -4,6 +4,7 @@ import (
 	"ascii"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 )
@@ -11,6 +12,8 @@ import (
 type Page struct {
 	Body   []byte
 	Banner []string
+	Input  string
+	Font   string
 }
 
 func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
@@ -32,8 +35,44 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
 	return output, bannerMap
 }
 
-func handlerFunc(w http.ResponseWriter, r *http.Request) {
-	output, bannerMap := asciiArt(r.FormValue("input"), r.FormValue("banner"))
+func handlerGet(w http.ResponseWriter, r *http.Request) {
+	input := "Welcome"
+	font := "standard.txt"
+	p1 := &Page{Input: input}
+	output, bannerMap := asciiArt(input, font)
+	list := ascii.SplitByNewLine(output)
+
+	str := ""
+	for _, word := range list {
+		if word == "" {
+			str = str + "\n"
+		} else {
+			for i := 0; i < 8; i++ {
+				line := ""
+				for _, r := range word {
+					line = line + bannerMap[r][i]
+				}
+				str = str + line + "\n"
+			}
+		}
+
+	}
+	p1.Body = []byte(str)
+	p1.Font = font
+	fonts, _ := os.ReadDir("fonts")
+	for _, name := range fonts {
+		p1.Banner = append(p1.Banner, name.Name())
+	}
+
+	t, _ := template.ParseFiles("ascii.html")
+	t.Execute(w, p1)
+
+}
+
+func handlerPost(w http.ResponseWriter, r *http.Request) {
+	input := r.FormValue("input")
+	font := r.FormValue("banner")
+	output, bannerMap := asciiArt(input, font)
 	list := ascii.SplitByNewLine(output)
 
 	str := ""
@@ -52,13 +91,12 @@ func handlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	}
 	p1 := &Page{Body: []byte(str)}
+	p1.Input = input
+	p1.Font = font
 	fonts, _ := os.ReadDir("fonts")
 	for _, name := range fonts {
 		p1.Banner = append(p1.Banner, name.Name())
 	}
-
-	// p1.save()
-	// p := loadPage("ascii.txt")
 
 	t, _ := template.ParseFiles("ascii.html")
 	t.Execute(w, p1)
@@ -66,8 +104,10 @@ func handlerFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", handlerFunc)
+
+	http.HandleFunc("/", handlerGet)
+	http.HandleFunc("/ascii-art", handlerPost)
 	fmt.Println("starting..")
-	http.ListenAndServe(":3000", nil)
+	log.Fatal(http.ListenAndServe(":3000", nil))
 
 }
