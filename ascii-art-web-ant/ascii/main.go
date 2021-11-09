@@ -30,6 +30,10 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
 }
 
 func handlerGet(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
+		http.Error(w, "404 Page Not Found", http.StatusNotFound)
+		return
+	}
 	input := "Welcome"
 	font := "standard.txt"
 	p1 := &Page{Input: input}
@@ -57,16 +61,40 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 		p1.Banner = append(p1.Banner, name.Name())
 	}
 
-	t, _ := template.ParseFiles("ascii.html")
+	t, err := template.ParseFiles("ascii.html")
+	if err != nil {
+
+	}
 	t.Execute(w, p1)
 
 }
 
 func handlerPost(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
+		http.Error(w, "404 Page Not Found", http.StatusNotFound)
+		return
+	}
 	input := r.FormValue("input")
+
 	font := r.FormValue("banner")
+
 	output, bannerMap := asciiArt(input, font)
-	list := ascii.SplitByNewLine(output)
+
+	// removing multilines and replacing with \n
+
+	sOutput := ""
+
+	for _, char := range output {
+		if char == 13 {
+
+		} else if char == 10 {
+			sOutput = sOutput + "\\" + "n"
+		} else {
+			sOutput = sOutput + string(char)
+		}
+	}
+
+	list := ascii.SplitByNewLine(sOutput)
 
 	str := ""
 	for _, word := range list {
@@ -83,6 +111,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+
 	p1 := &Page{Body: []byte(str)}
 	p1.Input = input
 	p1.Font = font
@@ -93,6 +122,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 	t, _ := template.ParseFiles("ascii.html")
 	t.Execute(w, p1)
+
 }
 
 func main() {

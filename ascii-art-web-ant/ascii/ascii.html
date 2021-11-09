@@ -10,7 +10,7 @@
     <form action="/ascii-art" method="POST">
         
         <div>
-            <input type="text" id="input" name="input" value={{.Input}}>
+            <textarea type="text" id="input" name="input" value={{.Input}}>{{.Input}}</textarea>
             <select name="banner" id="banner">
                 <option value={{.Font}} selected >{{.Font}} </option>
                 {{range .Banner}} 
@@ -20,7 +20,7 @@
             </select>
             <input type="submit" value="submit">
         </div>
-        <div><textarea name="body" rows="20" cols="80" readonly>{{printf "%s" .Body}}</textarea></div>
+        <div><textarea name="body" rows="20" cols="80" wrap="off">{{printf "%s" .Body}}</textarea></div>
     </form>
 </body>
 </html>
