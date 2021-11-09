@@ -63,10 +63,27 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 
 	t, err := template.ParseFiles("ascii.html")
 	if err != nil {
-
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	t.Execute(w, p1)
+	err = t.Execute(w, p1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
+}
+
+const (
+	StatusOK                  = 200 // RFC 7231, 6.3.1
+	StatusBadRequest          = 400 // RFC 7231, 6.5.1
+	StatusInternalServerError = 500 // RFC 7231, 6.6.1
+	StatusNotFound            = 404 // RFC 7231, 6.5.4
+)
+
+var statusText = map[int]string{
+	StatusOK:                  "OK",
+	StatusBadRequest:          "Bad Request",
+	StatusNotFound:            "Not Found",
+	StatusInternalServerError: "Internal Server Error",
 }
 
 func handlerPost(w http.ResponseWriter, r *http.Request) {
@@ -74,6 +91,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "404 Page Not Found", http.StatusNotFound)
 		return
 	}
+
 	input := r.FormValue("input")
 
 	font := r.FormValue("banner")
@@ -124,11 +142,22 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, p1)
 
 }
+func handleRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusBadRequest)
+
+	return
+
+}
 
 func main() {
+	// handler := http.StatusText(handleRequest)
+	// http.Handle("/ascii", handler)
 
 	http.HandleFunc("/", handlerGet)
 	http.HandleFunc("/ascii-art", handlerPost)
+	fs := http.FileServer(http.Dir("stylesheets/"))
+	http.Handle("/stylesheets/",
+		http.StripPrefix("/stylesheets/", fs))
 	fmt.Println("starting..")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 
