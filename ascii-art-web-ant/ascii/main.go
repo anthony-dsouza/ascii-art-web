@@ -16,8 +16,8 @@ type Page struct {
 	Font   string
 }
 
-func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
-	data := ascii.Banner(ban)
+func asciiArt(input string, ban string) (str string, bMap map[rune][]string, b error) {
+	data, err := ascii.Banner(ban)
 	output := input
 
 	defer data.Close()
@@ -26,18 +26,18 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string) {
 
 	bannerMap := ascii.Map(ArrayOfLines)
 
-	return output, bannerMap
+	return output, bannerMap, err
 }
 
 func handlerGet(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
-		http.Error(w, "404 Page Not Found", http.StatusNotFound)
+		http.Error(w, "400 Bad Request", http.StatusBadRequest)
 		return
 	}
 	input := "Welcome"
 	font := "standard.txt"
 	p1 := &Page{Input: input}
-	output, bannerMap := asciiArt(input, font)
+	output, bannerMap, err := asciiArt(input, font)
 	list := ascii.SplitByNewLine(output)
 
 	str := ""
@@ -63,32 +63,20 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 
 	t, err := template.ParseFiles("ascii.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "404 Status Not Found", 404)
+		return
 	}
 	err = t.Execute(w, p1)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "404 Status Not Found", 404)
+		return
 	}
 
-}
-
-const (
-	StatusOK                  = 200 // RFC 7231, 6.3.1
-	StatusBadRequest          = 400 // RFC 7231, 6.5.1
-	StatusInternalServerError = 500 // RFC 7231, 6.6.1
-	StatusNotFound            = 404 // RFC 7231, 6.5.4
-)
-
-var statusText = map[int]string{
-	StatusOK:                  "OK",
-	StatusBadRequest:          "Bad Request",
-	StatusNotFound:            "Not Found",
-	StatusInternalServerError: "Internal Server Error",
 }
 
 func handlerPost(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
-		http.Error(w, "404 Page Not Found", http.StatusNotFound)
+		http.Error(w, "400 Bad Request", http.StatusBadRequest)
 		return
 	}
 
@@ -96,7 +84,12 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 	font := r.FormValue("banner")
 
-	output, bannerMap := asciiArt(input, font)
+	output, bannerMap, err := asciiArt(input, font)
+
+	if err != nil {
+		http.Error(w, "404 Not Found", 404)
+		return
+	}
 
 	// removing multilines and replacing with \n
 
@@ -138,20 +131,22 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		p1.Banner = append(p1.Banner, name.Name())
 	}
 
-	t, _ := template.ParseFiles("ascii.html")
-	t.Execute(w, p1)
+	t, err := template.ParseFiles("ascii.html")
+	if err != nil {
+		http.Error(w, "404 Status Not Found", 404)
+	}
+	err = t.Execute(w, p1)
+	if err != nil {
+		http.Error(w, "500 Internal Server Error", 500)
+	}
 
-}
-func handleRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusBadRequest)
-
-	return
+	func (s *server) ready(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "Internal Server Error")
+	}
 
 }
 
 func main() {
-	// handler := http.StatusText(handleRequest)
-	// http.Handle("/ascii", handler)
 
 	http.HandleFunc("/", handlerGet)
 	http.HandleFunc("/ascii-art", handlerPost)
