@@ -4,7 +4,6 @@ import (
 	"ascii"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 )
@@ -145,5 +144,8 @@ func main() {
 	http.Handle("/stylesheets/",
 		http.StripPrefix("/stylesheets/", fs))
 	fmt.Println("starting..")
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	err := http.ListenAndServe(":3000", nil)
+	if err != nil {
+		fmt.Errorf("Internal Server Error")
+	}
 }
