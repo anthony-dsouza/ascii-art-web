@@ -35,11 +35,6 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
-		http.Error(w, "500, Internal server error", 500)
-		return
-	}
-
 	input := "Welcome"
 	font := "standard.txt"
 	p1 := &Page{Input: input}
@@ -82,11 +77,6 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 func handlerPost(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
 		http.Error(w, "400 Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
-		http.Error(w, "500, Internal server error", 500)
 		return
 	}
 
