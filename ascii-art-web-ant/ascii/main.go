@@ -31,9 +31,15 @@ func asciiArt(input string, ban string) (str string, bMap map[rune][]string, b e
 
 func handlerGet(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
-		http.Error(w, "400 Bad Request", http.StatusBadRequest)
+		http.Error(w, "400 Bad Request", 400)
 		return
 	}
+
+	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
+		http.Error(w, "500, Internal server error", 500)
+		return
+	}
+
 	input := "Welcome"
 	font := "standard.txt"
 	p1 := &Page{Input: input}
@@ -71,7 +77,6 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "404 Status Not Found", 404)
 		return
 	}
-
 }
 
 func handlerPost(w http.ResponseWriter, r *http.Request) {
@@ -80,12 +85,16 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.URL.Path != "/ascii-art" && r.URL.Path != "/" {
+		http.Error(w, "500, Internal server error", 500)
+		return
+	}
+
 	input := r.FormValue("input")
 
 	font := r.FormValue("banner")
 
 	output, bannerMap, err := asciiArt(input, font)
-
 	if err != nil {
 		http.Error(w, "404 Not Found", 404)
 		return
@@ -97,7 +106,6 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 	for _, char := range output {
 		if char == 13 {
-
 		} else if char == 10 {
 			sOutput = sOutput + "\\" + "n"
 		} else {
@@ -120,7 +128,6 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 				str = str + line + "\n"
 			}
 		}
-
 	}
 
 	p1 := &Page{Body: []byte(str)}
@@ -139,15 +146,9 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "500 Internal Server Error", 500)
 	}
-
-	func (s *server) ready(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Internal Server Error")
-	}
-
 }
 
 func main() {
-
 	http.HandleFunc("/", handlerGet)
 	http.HandleFunc("/ascii-art", handlerPost)
 	fs := http.FileServer(http.Dir("stylesheets/"))
@@ -155,5 +156,4 @@ func main() {
 		http.StripPrefix("/stylesheets/", fs))
 	fmt.Println("starting..")
 	log.Fatal(http.ListenAndServe(":3000", nil))
-
 }

@@ -2,14 +2,8 @@ package ascii
 
 import "os"
 
-func Banner(str string) *os.File {
-
+func Banner(str string) (*os.File, error) {
 	b, err := os.Open("fonts/" + str)
 
-	if err != nil {
-		panic(err)
-	}
-
-	return b
-
+	return b, err
 }
