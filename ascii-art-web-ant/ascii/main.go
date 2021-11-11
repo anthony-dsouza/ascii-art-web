@@ -56,7 +56,7 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 	}
 	err = t.Execute(w, p1)
 	if err != nil {
-		http.Error(w, "404 Status Not Found", 404)
+		http.Error(w, "500 Internal Server Error", 500)
 		return
 	}
 }
