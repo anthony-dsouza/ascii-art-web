@@ -34,26 +34,14 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := "Welcome"
-	font := "standard.txt"
+	input := "Type Text Here"
+	font := "standard"
 	p1 := &Page{Input: input}
 	output, bannerMap, err := asciiArt(input, font)
 	list := ascii.SplitByNewLine(output)
 
-	str := ""
-	for _, word := range list {
-		if word == "" {
-			str = str + "\n"
-		} else {
-			for i := 0; i < 8; i++ {
-				line := ""
-				for _, r := range word {
-					line = line + bannerMap[r][i]
-				}
-				str = str + line + "\n"
-			}
-		}
-	}
+	//adds lines from list to str
+	str := ascii.AddLines(list, bannerMap)
 	p1.Body = []byte(str)
 	p1.Font = font
 	fonts, _ := os.ReadDir("fonts")
@@ -61,7 +49,7 @@ func handlerGet(w http.ResponseWriter, r *http.Request) {
 		p1.Banner = append(p1.Banner, name.Name())
 	}
 
-	t, err := template.ParseFiles("ascii.html")
+	t, err := template.ParseFiles("templates/ascii.html")
 	if err != nil {
 		http.Error(w, "404 Status Not Found", 404)
 		return
@@ -104,20 +92,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 	list := ascii.SplitByNewLine(sOutput)
 
-	str := ""
-	for _, word := range list {
-		if word == "" {
-			str = str + "\n"
-		} else {
-			for i := 0; i < 8; i++ {
-				line := ""
-				for _, r := range word {
-					line = line + bannerMap[r][i]
-				}
-				str = str + line + "\n"
-			}
-		}
-	}
+	str := ascii.AddLines(list, bannerMap)
 
 	p1 := &Page{Body: []byte(str)}
 	p1.Input = input
@@ -127,7 +102,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		p1.Banner = append(p1.Banner, name.Name())
 	}
 
-	t, err := template.ParseFiles("ascii.html")
+	t, err := template.ParseFiles("templates/ascii.html")
 	if err != nil {
 		http.Error(w, "404 Status Not Found", 404)
 	}
@@ -146,6 +121,6 @@ func main() {
 	fmt.Println("starting..")
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {
-		fmt.Errorf("Internal Server Error")
+		fmt.Errorf("ServerError", 404)
 	}
 }

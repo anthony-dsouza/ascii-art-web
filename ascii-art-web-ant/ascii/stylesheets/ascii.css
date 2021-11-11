@@ -5,3 +5,16 @@ body {
     background-blend-mode: overlay;
     background-size:cover
 }
+.box {
+    display: grid;
+    width: 540px;
+    grid-template-columns: 150px;
+    align-items: center;
+    justify-content: space-around;
+}
+.box :first-child {
+    align-self: center;
+}
+textarea {
+    justify-content: center;
+}
