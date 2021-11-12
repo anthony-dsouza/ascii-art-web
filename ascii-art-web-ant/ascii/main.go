@@ -119,8 +119,6 @@ func main() {
 	http.Handle("/stylesheets/",
 		http.StripPrefix("/stylesheets/", fs))
 	fmt.Println("starting..")
-	err := http.ListenAndServe(":3000", nil)
-	if err != nil {
-		fmt.Errorf("ServerError", 404)
-	}
+	http.ListenAndServe(":3000", nil)
+
 }
